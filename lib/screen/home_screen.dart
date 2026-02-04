@@ -35,10 +35,14 @@ class _HomeScreenState extends State<HomeScreen>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('My daily tasks')),
+      appBar: AppBar(
+        title: Text('My daily tasks'),
+        backgroundColor: Colors.blueAccent,
+        foregroundColor: Colors.white70,
+      ),
       body: Column(
         children: [
-          Padding(padding: const EdgeInsets.all(12),
+          Padding(padding: const EdgeInsets.only(top: 30,bottom: 12,left: 12,right: 12),
             child: Row(
               children: [
                 Expanded(
