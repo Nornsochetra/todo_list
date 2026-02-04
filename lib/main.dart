@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:todo_list_app/screen/home_screen.dart';
+import 'package:provider/provider.dart';
+import 'screen/home_screen.dart';
+import 'viewmodels/task_view_model.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(
+    ChangeNotifierProvider(
+        create: (_) => TaskViewModel(),
+        child: const MyApp()
+    )
+  );
 }
 
 class MyApp extends StatelessWidget{

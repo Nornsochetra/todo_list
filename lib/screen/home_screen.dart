@@ -1,39 +1,39 @@
 import 'package:flutter/material.dart';
-import '../models/tasks.dart';
+import 'package:provider/provider.dart';
+import 'package:todo_list_app/viewmodels/task_view_model.dart';
 import '../widget/task_items.dart';
+
 
 class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>{
-  List<Tasks> tasks = [];
-  TextEditingController textEditingController = TextEditingController();
+class _HomeScreenState extends State<HomeScreen> {
+  final TextEditingController controller = TextEditingController();
 
-  void addTask(){
-    if(textEditingController.text.isEmpty) return;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
 
-    setState(() {
-      tasks.add(Tasks(title: textEditingController.text));
-      textEditingController.clear();
-    });
-  }
-
-  void toggleTask(int index) {
-    setState(() {
-      tasks[index].isDone = !tasks[index].isDone;
-    });
-  }
-
-  void deleteTask(int index){
-    setState(() {
-      tasks.removeAt(index);
+    // Flutter version of `.task {} in swiftUI`
+    Future.microtask((){
+      context.read<TaskViewModel>().getAllTasks();
     });
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final vm = context.watch<TaskViewModel>();
+
     return Scaffold(
       appBar: AppBar(
         title: Text('My daily tasks'),
@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen>{
               children: [
                 Expanded(
                     child: TextField(
-                      controller: textEditingController,
+                      controller: controller,
                       decoration: InputDecoration(
                           hintText: 'Enter Tasks',
                           border: OutlineInputBorder(
@@ -60,23 +60,48 @@ class _HomeScreenState extends State<HomeScreen>{
                 ),
                 SizedBox(width: 8),
                 ElevatedButton(
-                    onPressed: addTask,
+                    onPressed: () async {
+                      await vm.addTask(controller.text);
+                      controller.clear();
+                    },
                     child: Text('Add Tasks')
                 )
               ],
             ),
           ),
           Expanded(
-              child: ListView.builder(
-                itemCount: tasks.length,
-                itemBuilder: (context, index) {
-                  return TaskItems(
-                    task: tasks[index],
-                    onToggle: () => toggleTask(index),
-                    onDelete: () => deleteTask(index),
+            child: Builder(
+              builder: (_) {
+                if (vm.isLoading) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
                   );
-                },
-              )
+                }
+
+                if (vm.error != null) {
+                  return Center(
+                    child: Text(vm.error!),
+                  );
+                }
+
+                if (vm.tasks.isEmpty) {
+                  return const Center(
+                    child: Text('No tasks yet'),
+                  );
+                }
+
+                return ListView.builder(
+                  itemCount: vm.tasks.length,
+                  itemBuilder: (context, index) {
+                    return TaskItems(
+                      task: vm.tasks[index],
+                      onDelete: () => vm.removeTaskById(vm.tasks[index].id),
+                      onToggle: () => vm.changeTaskById(vm.tasks[index].id),
+                    );
+                  },
+                );
+              },
+            ),
           )
         ],
       ),
